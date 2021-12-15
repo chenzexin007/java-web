@@ -248,3 +248,143 @@ https://blog.csdn.net/bobo553443/article/details/81383194
 select * from 表名；
 ```
 
+1. 语法
+
+   ```
+   select 
+   	字段列表
+   from 
+   	表名列表
+   where
+   	条件列表
+   group by
+   	分组字段
+   having
+   	分组之后的条件
+   order by
+   	排序
+   limit
+   	分页限定
+   ```
+
+   
+
+2. 基础查询
+
+   ```
+   1.多个字段查询
+   select 字段1, 字段2, ... from 表名;
+   
+   2.去重
+   distinct
+   
+   3.计算列
+   select 字段1, 字段2, 字段1+字段2 from 表名;  // 一般只对数值类型计算，字符串拼接比较少
+   ifnull(字段名, 替换后的值); // 解决null的问题
+   
+   4.起别名
+   as 可以省略
+   select 字段1 as 别名 from 表名;
+   select 字段1 别名 from 表名;
+   
+   ```
+
+   
+
+3. 条件查询
+
+   ```
+   1.where子句后跟条件
+   2.运算符
+   >、 <、 <=、 >=、 =、 <>
+   select * from 表名 WHERE age <= 20;
+   
+   between...and
+   select * from 表名 WHERE age BETWEEN 20 AND 30;
+   
+   in(集合)
+   select * from 表名 WHERE IN(20,25,30);
+   
+   like 模糊查询
+   	占位符： _: 单个任意字符
+   			%: 0-多个任意字符
+   eg. 姓马的
+   select * from 表名 WHERE name like "马%";
+   eg. 第二个字是马的
+   select * from 表名 WHERE name like "_马%";
+   eg. 名字有马的
+   select * from 表名 WHERE name like "%马%";
+   
+   is null
+   select * from 表名 WHERE age IS NULL;
+   
+   and 或 &&
+   select * from 表名 WHERE age < 20 AND age > 18;
+   or 或 ||
+   
+   not 或 ！
+   select * from 表名 WHERE age IS NOT NULL;
+   
+   ```
+
+4. 排序查询
+
+   ```
+   * 语法
+   	order by
+   * 排序方式
+   	默认升序： ASC
+   	降序： DESC
+   eg. 按照数学成绩排序，数学成绩一样的话按英语成绩排序
+   select * from 表名 ORDER BY math ASC, english ASC;
+   ```
+
+5. 聚合函数（对一列数据的操作）
+
+   ```
+   1. count: 计算个数
+   	一般选择非空的键： 主键
+   	count(*)
+   eg. select count(id) from student;
+   
+   2. max 计算最大值
+   eg. select MAX(math) from studeng;
+   
+   3. min 最小值
+   eg. select MIN(math) from studeng;
+   
+   4. sum 计算和
+   eg. select SUM(math) from studeng;
+   
+   5. avg 平均值
+   eg. select AVG(math) from studeng;
+   
+   
+   ```
+
+6. 分组查询
+
+   ```
+   1.语法
+   	group by
+   2.注意
+   	* 分组之后，查询的字段只能是 分组字段、聚合函数
+   eg. select sex, AVG(math), COUNT(math) from student GROUP BY sex;
+   	* where和having的区别
+   	1）where在分组前进行限定，如果不满足就不分组；having在分组后限定，如果不满足就不查询；
+   	2）where后不跟聚合函数，having后可以跟聚合函数；
+   eg. 按照性别分组，分别查询男女同学的数学平均分，分数低于70分不参与计算，分组之后人数要大于2的
+   select sex, AVG(math), COUNT(id) from student where match > 70 GROUP BY sex having COUNT(id) > 2;
+   ```
+
+7. 分页查询
+
+   ```
+   * 语法
+    limit 开始索引， 每页查询条数
+    公式： 开始索引 = （当前的页数 -1） * 每页条数
+   eg.
+   select * from student LIMIT 开始索引, 结束索引;
+   ```
+
+   
