@@ -388,3 +388,67 @@ select * from 表名；
    ```
 
    
+
+## 约束
+
+```
+概念：
+	对表中的数据进行限定，保证数据的正确性，有效性和完整性。
+```
+
+
+
+### 主键约束
+
+```
+1. 注意
+ * 非空且唯一
+ * 一张表只有一个主键
+ * 主键就是表中记录的唯一标识
+2. 在建表时， 添加主键约束
+CREATE TABLE stu{
+	id INT PRIMARY KEY,
+	name VARCHAR(20)
+};
+3. 删除主键
+ALTER TABLE stu DROP PRIMARY KEY;
+4. 创建表后，再添加主键
+ALTER TABLE stu MODIFY id INT PRIMARY KEY;
+```
+
+
+
+### 非空约束
+
+```
+* 语法： not null
+1. 创建表时添加约束
+create table stu{
+	id INT,
+	name VARCHAR(20) NOT NULL -- name为非空
+};
+
+2. 创建表后，再添加约束
+ALTER TABLE stu modify name VARCHAR(20) NOT NULL;
+```
+
+
+
+### 唯一约束
+
+```
+* 语法： UNIQUE
+1.注意，唯一约束允许有NULL，但是只能有一个NULL
+2.创建表时添加唯一约束
+CREATE TABLE stu{
+	id INT,
+	name VARCHAR(20) UNIQUE
+}
+3. 创建后设置唯一约束
+ALTER TABLE stu MODIFY name VACHAR(20) UNIQUE;
+```
+
+
+
+### 外键约束
+
