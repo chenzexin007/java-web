@@ -131,8 +131,6 @@ ServletConfig: Servlet的配置对象
 	
 ```
 
-
-
 ### HttpServlet
 
 ```
@@ -143,4 +141,53 @@ ServletConfig: Servlet的配置对象
 ```
 
 
+
+## Servlet相关配置
+
+### urlpartten: Servlet访问路径
+
+```
+1.一个servlet可以定义多个访问路径
+@WebServlet({"/d4", "/dd4", "/ddd4"})
+
+2.路径定义规则
+	/XXX
+	/XXX/XXX
+	*.do
+```
+
+## ServletContext对象
+
+### 1.概念
+
+```
+* 代表整个web应用， 可以和程序的容器（服务器）来通信
+```
+
+### 2.获取
+
+```
+1. 通过request对象获取
+request.getServletContext();
+2. 通过HttpServlet获取
+this.getServletContext();
+```
+
+### 3.功能
+
+```
+1. 获取MIME类型：
+* MIME类型： 在互联网通信过程中定义的一种文件数据类型
+* 格式： 大类型/小类型   text/html
+* 获取： String getMineType(String file);
+
+2. 域对象： 共享数据
+* setAttribute(String name, Object value);
+* getAttribute(String name);
+* removeAttribute(String name);
+* ServletContext对象范围： 所有用户请求的数据，所以这些数据所有用户可以访问，且生命周期很长，要慎用。
+
+3. 获取文件的真实路径(服务器)路径
+* String getRealPath(String path)
+```
 
