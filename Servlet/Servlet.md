@@ -173,21 +173,65 @@ request.getServletContext();
 this.getServletContext();
 ```
 
-### 3.功能
+### 3.功能 
+
+## Cookie会话
 
 ```
-1. 获取MIME类型：
-* MIME类型： 在互联网通信过程中定义的一种文件数据类型
-* 格式： 大类型/小类型   text/html
-* 获取： String getMineType(String file);
+1. 概念：
+* 客户端会话技术，将数据保存到客户端
 
-2. 域对象： 共享数据
-* setAttribute(String name, Object value);
-* getAttribute(String name);
-* removeAttribute(String name);
-* ServletContext对象范围： 所有用户请求的数据，所以这些数据所有用户可以访问，且生命周期很长，要慎用。
-
-3. 获取文件的真实路径(服务器)路径
-* String getRealPath(String path)
+2. 快速入门
+* 使用步骤
+	1. 创建Cookie对象，绑定数据
+	Cookie c = new Cookie(String name, String value);
+	2. 发送Cookie对象
+	response.addCookie(c);
+	3. 获取Cookie, 拿到数据
+    Cookie[] cs = request.getCookies();
+    if(cs != null){
+        for (Cookie c : cs) {
+            String name = c.getName();
+            String value = c.getValue();
+            System.out.println(name + ":" + value);
+        }
+    }
+    
+ 3. 实现原理：
+ * 基于响应头set-cookie和请求头cookie实现
+ 
+ 4. cookie细节
+ * 一次是否能发送多个cookie
+ 	可以，
+ 	可以创建过个cookie，使用response调用多次addCookie方法发送cookie即可
+ * cookie在浏览器中保存的时间
+ 	1）默认情况下，当浏览器关闭后，Cookie数据被销毁
+ 	2）持久化存储
+ 		* setMaxAge(int seconds);
+ 		正数： 将cookie数据写道硬盘文件中，持久化存储，cookie存活时间。
+ 		负数： 默认值（浏览器关闭，会话结束，清空cookie）。
+ 		0： 删除浏览器存储的指定cookie。
+ 		
+ * cookie能不能存储中文
+ 	在tomcat8 之前 cookie 不能直接存储中文，需要数据转码
+ 	tomcat8 之后 cookie 可以直接存储中文
+ 
+ * cookie获取范围多大
+   1. 相同tomcat服务器中，部署了多个web项目，默认情况下，这些web项目的cookie不饿能共享
+   * setPath(String path); 默认使用了web项目的虚拟路径，所以每个项目都不一样
+   	如果想要共享， 则可以将path设置为 "/"
+   	
+   2. 不同tomcat服务器间cookie共享问题：
+   * setDomain(String path): 如果设置一级域名相同，那么多个服务器间的cookie可以共享
+   eg. setDomain(".baidu.com")
+   tieba.baidu.com 和 news.baidu.com 可以cookie共享
+   
+ 5. Cookie的特点和作用
+ * cookie存储数据在客户端浏览器
+ * 浏览器对单个cookie的大小限制4kb左右，对同域名下cookie总量限制20个左右
+ 
+ 作用：
+	* cookie一般用于存储少量的不太敏感的数据
+	* 在不登陆的情况下， 完成服务器对客户端的身份识别
 ```
 
