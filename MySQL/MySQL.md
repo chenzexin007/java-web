@@ -468,10 +468,97 @@ ALTER TABLE stu MODIFY name VACHAR(20) UNIQUE;
 
 ```
 jdbc: java database connectivity  java数据库连接，java语言操作数据库
+
 jdbc的本质：其实是sun公司定义的一套操作所有关系型数据库的规则， 即接口。各个数据库厂商去实现这套接口，并提供jar包。我们可以使用这套接口（JDBC）编程，实际上执行的是对应数据库的jar包中的接口实现类。
 ```
 
+## 快速入门
 
+![3e00752b955eb52704f2b6647fed664](./3e00752b955eb52704f2b6647fed664.png)
+
+```
+// 1. 导入驱动jar包
+// 2. 注册驱动
+Class.forName("com.mysql.jdbc.Driver");
+// 3. 获取数据库连接对象
+Connection root = DriverManager.getConnection("jdbc:mysql://localhost:3306/world", "root", "123456");
+// 4. 定义sql语句
+String sql = "update account set wallet = 500 where id = 1";
+// 5. 获取操作sql的对象，Statement
+Statement statement = root.createStatement();
+// 6. 执行sql
+int i = statement.executeUpdate(sql);
+// 7. 处理结果
+System.out.println(i);
+// 释放资源
+statement.close();
+root.close();
+```
+
+## 详解各个对象
+
+### DriverManager
+
+```
+功能： 
+1. 注册驱动： 告诉程序使用哪一个数据库驱动jar
+static void	registerDriver(Driver driver): 注册给定的驱动程序 DriverManager
+写代码使用： Class.forName("com.mysql.jdbc.Driver");
+通过查看源码发现： 在com.mysql.jdbc.Driver类中静态代码块有自动注册
+    static {
+        try {
+            DriverManager.registerDriver(new Driver());
+        } catch (SQLException var1) {
+            throw new RuntimeException("Can't register driver!");
+        }
+    }
+ * 注意： mysql5.0之后jar包可以省略注册的步骤。
+ 
+ 2. 获取数据库连接
+ * 方法： static Connection	getConnection(String url, String user, String password)
+ * 参数： 
+ 	* url： 指定连接的路径
+ 		* 语法： jdbc:mysql://ip:端口/数据库名
+ 		* 细节： 如果连接的是本机mysql，并且默认端口是3306，则url可以简写成： jdbc:mysql:///数据库名
+ 	* user： 用户名
+ 	* password： 密码
+```
+
+### connection
+
+```
+1. 功能
+	* 获取执行sql的对象
+	 Statement	createStatement()
+	 PreparedStatement	prepareStatement(String sql)
+	* 管理事务
+	 * 开启事务	 void	setAutoCommit(boolean autoCommit) 该方法参数为false时，即开启事务
+	 * 提交事务	 void	commit()
+	 * 回滚事务  void	rollback()
+```
+
+### Statement
+
+```
+1. 执行sql
+	* boolean	execute(String sql) 可以执行任意sql， 了解就行
+	* int	executeUpdate(String sql) 执行DML(insert、update、delete)、DDL(create、alter、drop)
+		返回值： 影响的行数， 可以通过这个判断是否成功， 返回值》0成功，反之失败
+	* ResultSet	executeQuery(String sql) 执行DQL(select)语句
+		返回： 结果集
+```
+
+### ResultSet
+
+```
+* 执行静态sql
+```
+
+### PreparedStatement
+
+```
+* 执行编译sql（动态sql），防止sql注入
+```
 
 
 
