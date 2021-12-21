@@ -550,8 +550,15 @@ static void	registerDriver(Driver driver): 注册给定的驱动程序 DriverMan
 
 ### ResultSet
 
-```
-* 执行静态sql
+```。。。
+* 结果集对象，封装查询结果
+* next();  游标向下移动一下， 游标初始默认指向表头无数据
+	返回true， 代表还没有越界，该行数据可取
+	放回false， 已越界，该行没有数据可取
+* getXXX(参数); 获取数据
+	xxx代表类型： Int、 String...
+	参数： int 代表列得序号，从1开始
+		  string 代表列名
 ```
 
 ### PreparedStatement
