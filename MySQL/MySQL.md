@@ -567,6 +567,65 @@ static void	registerDriver(Driver driver): 注册给定的驱动程序 DriverMan
 * 执行编译sql（动态sql），防止sql注入
 ```
 
+# 数据库连接池
+
+## 概念
+
+```
+* 概念：
+	其实就是一个同期(集合), 存放数据库连接的容器
+	当系统初始化好后，容器被创建，容器中会申请一些连接对象，当用户访问数据库时，从容器中获取连接对象，用户访问完之后，会将连接对象归还给容器
+
+* 好处：
+	1. 节约资源
+	2. 用户访问高效
+```
+
+## 实现
+
+```
+* 实现：
+	1.标准接口： DataSource  javax.sql包下的
+	* 方法：
+    	1) 获取连接： getConnection()
+    	2) 归还连接： Connection.close()
+    		如果连接对象Connection是从连接池中获取的，那么调用Connection.close()，则不会关闭连接，而是归还连接。
+    2. 一般我们不去实现它， 有数据库厂商来实现
+    	* C3P0: 数据库连接池技术
+    	* Druid: 数据库连接池实现技术，由阿里巴巴提供
+```
+
+## C3P0
+
+![1640156147(1)](./1640156147(1).jpg)
+
+```
+* 步骤
+ 1. 导入jar包（2个）： c3p0-0.9.5.2.jar   mchange-commons-java-0.2.11.jar, 不要忘记导入jdbc需要的数据库驱动jar包
+ 2. 定义配置文件
+ 	* 名称： c3p0.properties 后者 c3p0-config.xml
+ 	* 路径： 直接将文件放在src目录下
+ 3. 创建核心对象： 数据库连接池对象 
+ 	DataSource dataSource = new ComboPooledDataSource();
+ 4. 获取连接：
+ 	Connection connection = dataSource.getConnection();
+```
+
+## Druid
+
+![1640156072(1)](./1640156072(1).jpg)
+
+```
+* 步骤
+	1. 导入jar包 druid-1.0.9.jar
+	2. 定义配置文件
+		* 是properties形式的
+		* 可以叫任意名称，可以放在任意目录下
+	3. 加载配置文件， xxx.properties
+	4. 获取数据库连接池对象： 通过工厂来获取 DruidDataSourceFactory
+	5. 获取连接： getConnection
+```
+
 
 
 # 事务
