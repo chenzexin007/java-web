@@ -112,3 +112,101 @@ eg.
     <bean id="userDao" factory-bean="factory" factory-method="getUserDao"></bean>   
 ```
 
+## 4.Spring依赖注入 IOC
+
+```
+* 场景：
+	web层   			调用         service层
+	service层		调用			dao层
+这样的调用方式： web层 =》 service层  =》 dao层，其实我们只关心web层调用service层，所以service层调用dao层的交由Spring管理，我们可以使用 IOC 依赖注入实现
+* 依赖注入两种实现方式： 
+	1. set方法
+	2. 带参构造函数
+```
+
+### 4.1 set依赖注入
+
+```
+1）UserService类中的set方法
+    private UserDaoImpl userDaoImpl;
+
+    public void setUserDaoImpl(cn.itcast.dao.impl.UserDaoImpl userDaoImpl) {
+        this.userDaoImpl = userDaoImpl;
+    }
+2）配置文件 
+	* 不使用 p命名空间， 推荐使用这种方式
+    <bean id="userDao" class="cn.itcast.dao.impl.UserDaoImpl"></bean>
+    <bean id="userService" class="cn.itcast.service.impl.UseService">
+        <property name="userDaoImpl" ref="userDao"></property>
+    </bean>
+    name=userService： 指UserService类中 setUserService
+    ref： 指用那个Bean注入
+    注入普通属性： 不用ref，用value
+   * 使用 p 命名空间
+   xmlns:p="http://www.springframework.org/schema/p"
+   <bean id="userService" class="cn.itcast.service.impl.UseService" p:userDaoImpl-ref="userDao"></bean>
+   要添加命名空间
+   p:userDaoImpl-ref="对象"， p:userDaoImpl="非引用类型"
+    
+```
+
+### 4.2 带参构造方法注入
+
+```
+1）UserService类中的 带参构造方法
+    private UserDaoImpl userDaoImpl;
+
+    public UseService(UserDaoImpl userDaoImpl) {
+        this.userDaoImpl = userDaoImpl;
+    }
+
+2） xml配置文件
+	<bean id="userDao" class="cn.itcast.dao.impl.UserDaoImpl"></bean>
+    <bean id="userService" class="cn.itcast.service.impl.UseService">
+        <constructor-arg name="userDaoImpl" ref="userDao"></constructor-arg>
+    </bean>
+    name="userDaoImpl"： 构造方法，形参名
+    ref="userDao"： Bean的id
+```
+
+### 4.3 import划分模块
+
+```
+eg 
+	<import resource="xxx.xml">
+```
+
+## 5.注解开发
+
+```
+	Spring是一个 重配置 轻代码的框架， 通过注解减小xml配置文件体积， 简化和提升开发速度。
+	
+* 步骤：
+	1. 使用@Component("BeanId") @Controller、 @Service、 @Repository等代替 xml中的bean配置
+	2. 使用@Autowired配合Qualifier("BeanId") 实现依赖注入
+		而且使用这种方式注入的话，类中对应的set方法可以不写
+	  * 如果知识按照类型注入，可以直接写 @Autowried
+	  * 如果按照BeanId注入， 需要@Autowried 和 Qualifier("BeanId")同时写
+	  * @Resource: 相当于 @Autowried 和 Qualifier("BeanId")同时写
+		
+	3. 在xml文件中配置扫描包路径， 告知Spring需要去扫描哪些包的注解，自动创建Bean并注入Spring容器中
+	 eg.  <context:component-scan base-package="包名"></context:component-scan>
+	
+```
+
+### 5.1原始注解
+
+```
+* Spring原始注解主要是替代<Bean>的配置
+```
+
+![1640513215](D:\java\java-web\ssm\Spring\1640513215.jpg)
+
+### 5.2 新注解
+
+![1640516198(1)](D:\java\java-web\ssm\Spring\1640516198(1).jpg)
+
+```
+
+```
+
