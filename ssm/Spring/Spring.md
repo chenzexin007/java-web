@@ -200,13 +200,82 @@ eg
 * Spring原始注解主要是替代<Bean>的配置
 ```
 
-![1640513215](D:\java\java-web\ssm\Spring\1640513215.jpg)
+![1640513215](./1640513215.jpg)
 
 ### 5.2 新注解
 
-![1640516198(1)](D:\java\java-web\ssm\Spring\1640516198(1).jpg)
+![1640516198(1)](./1640516198(1).jpg)
 
 ```
 
+```
+
+## 6.Spring整合Servlet
+
+### 6.1 自实现版本
+
+```
+1. 将初始Spring容器储存到servletContext共享域下
+public class ContextListenerLoader implements ServletContextListener {
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+    	// 核心代码
+        ClassPathXmlApplicationContext app = new ClassPathXmlApplicationContext("applicationContext.xml");
+        ServletContext servletContext = servletContextEvent.getServletContext();
+        servletContext.setAttribute("app", app);
+        System.out.println("spring监听器初始化完毕。。。。");
+    }
+
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+
+    }
+}
+
+2. 配置web.xml中listenter监听器， 执行全类名指定的类
+  <listener>
+    <listener-class>cn.itcast.listener.ContextListenerLoader</listener-class>
+  </listener>
+  
+3. 通过servletContext对象共享域获取Spring容器，取到想要的Bean
+public class UseServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        ServletContext servletContext = this.getServletContext();
+        ApplicationContext app = (ApplicationContext)servletContext.getAttribute("app");
+        UseServiceImpl useService = (UseServiceImpl)app.getBean("useService");
+        useService.save();
+    }
+}
+```
+
+### 6.2 Spring集成版本
+
+```
+* Spring提供了一个监听器ContextLoaderListener，自动根据web.xml的配置，创建Spring容器，并注入到ServletContext共享域中，提供了一个WebApplicationContextUtils供使用者获取Spring容器。
+
+第一步： 
+	pom.xml导入依赖， spring-web
+	
+第二步： 
+	web.xml中配置全局初始化参数
+      <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+      </context-param>	
+      监听器
+   	  <listener>
+    	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  	  </listener> 
+ 
+ 第三步： 
+ 	获取Spring容器上下文
+ public class UseServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        ServletContext servletContext = this.getServletContext();
+        WebApplicationContext app = WebApplicationContextUtils.getWebApplicationContext(servletContext);
+        UseServiceImpl useService = (UseServiceImpl)app.getBean("useService");
+        useService.save();
+    }
+}	
 ```
 
