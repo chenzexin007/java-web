@@ -77,3 +77,209 @@
 * DispatcherServlet根据View进行渲视图（即模型数据填充至视图中）。DispatcherServlet响应用户。
 ```
 
+## 3.SpringMVC组件解析
+
+### 3.1SpringMVC注解解析
+
+```
+* @RequestMapping
+作用： 用于建立请求URL和处理请求方法之间的对应关系
+位置：
+	* 类上： 请求URL的第一级访问目录，此处不写相当于 /
+	* 方法上： 请求URL的第二级访问目录
+属性：
+	* value：用于指定请求的URL
+    * method： 用于指定请求的方式
+    * params： 用于指定限制请求参数的条件
+    	eg： params={"accountName"}, 请求必须携带参数accountName
+```
+
+![1640657234(1)](./1640657234(1).jpg)
+
+### 3.2 SpringMVC组件扫描
+
+```
+* 注意： SpringMVC只扫描Controller包下的Bean， 一般在spring-mvc.xml下配置扫描
+		Spring扫描Spring要的Bean的包，例如dao包、service包等， 一般在applicationContext.xml下配置扫描
+		各扫各的，不要冲突，不要重复，多扫
+		
+* spring-mvc.xml配置扫描两个步骤
+	1.引入context命名空间
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 		http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+                
+     2. 配置要扫描的包
+     <context:component-scan base-package="cn.itcast.controller">
+     	// <context:include-filter type="" expression=""/>  配置那些要扫描
+     	// <context:exclude-filter type="" expression=""/>  配置那些不扫描
+     </context:component-scan>
+```
+
+## 4.SpringMVC的数据响应
+
+### 4.1页面跳转
+
+- 直接放回字符串形式
+
+  ![1640659632(1)](./1640659632(1).jpg)
+
+- 返回ModelAndView
+
+![1640660356(1)](./1640660356(1).jpg)
+
+- 其他两种方式
+
+  ```
+  * SpringMVC内部处理ModelAndView
+      @RequestMapping("/quick3")
+      public ModelAndView save03(ModelAndView modelAndView){
+          // 添加数据
+          modelAndView.addObject("age", "18");
+  
+          // 设置视图
+          modelAndView.setViewName("/success.jsp");
+  
+          return modelAndView;
+      }
+      
+  * SpringMVC内部处理Model
+      @RequestMapping("/quick4")
+      public String save04(Model model){
+          model.addAttribute("age", "18");
+  
+          return "/success.jsp";
+      }
+      
+  * SpringMVC内部处理HttpServletRequest 
+      @RequestMapping("/quick5")
+      public String save05(HttpServletRequest request){
+          request.setAttribute("age", "18");
+  
+          return "/success.jsp";
+      }
+  ```
+
+
+
+### 4.2 回写数据
+
+```
+    // 回写数据  -- 字符串
+    @RequestMapping("/quick6")
+    public void save06(HttpServletResponse response) throws IOException {
+        response.getWriter().print("Hello SpringMVC");
+    }
+    
+    @RequestMapping("/quick7")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public String save07() throws IOException {
+        return "Hello SpringMVC";
+    } 
+    
+    // 回写数据  -- 字符串对象
+    @RequestMapping("/quick8")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public String save08() throws IOException {
+        User user = new User();
+        user.setAge(18);
+        user.setName("张三");
+        // 这个对象转json的依赖要安装三个： jackson-core、jackson-annotations、jackson-databind版本都选用2.9.0
+        ObjectMapper objectMapper = new ObjectMapper();
+        String s = objectMapper.writeValueAsString(user);
+        return s;
+    }
+    
+* 在spring-mvc.xml中
+	* 加入 mvc命名空间
+	* 使用<mvc:annotation-driven></mvc:annotation-driven>   ！！！这个在spring-mvc.xml文件中一般都是必须配置的
+	* SpringMVC三大组件： 处理器映射器、处理器适配器、视图解析器
+	* 使用<mvc:annotation-driven>就会自动加载RequestMappingHandlerMapping（处理映射器）和RequestMappingHandlerAdapter（处理适配器）、
+	默认底层就会继承jackson进行对象集合的json格式字符串的转换
+	
+```
+
+## 5.SpringMVC请求参数
+
+### 5.1获取基本数据类型
+
+```
+* Controller中的业务方法的参数名称要与请求的name一致，参数会自动映射匹配
+	// 请求地址 http://localhost:8089/user/quick10?name=%22lilei%22&age=18
+    @RequestMapping("/quick10")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save10(String name, int age) throws IOException {
+        System.out.println(name + "---" + age);
+    }
+```
+
+### 5.2获取POJO参数类型
+
+```
+* Controller中的业务方法的POJO参数的属性名与请求参数的name一致，参数会自动映射匹配
+	// 请求地址 http://localhost:8089/user/quick11?name=%22lilei%22&age=18
+    @RequestMapping("/quick11")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save11(User user) throws IOException {
+        System.out.println(user);
+    }
+```
+
+### 5.3获取数组类型参数
+
+```
+* Controller中的业务方法数组名称与请求参数的name一致，参数值会自动映射匹配
+	// 请求地址 http://localhost:8089/user/quick12?str=111&str=222&str=333
+    @RequestMapping("/quick12")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save12(String[] str) throws IOException {
+        System.out.println(Arrays.asList(str));
+    }
+```
+
+### 5.4 获取集合类型参数
+
+```
+* 第一种： 利用获取POJO类型自动匹配的特性， 我们将封装一个集合类VO，通过VO做形参，这样SpringMVC会帮我们自动匹配
+    @RequestMapping("/quick13")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save13(VO vo) throws IOException {
+        System.out.println(vo);
+    }
+```
+
+![1640673942(1)](./1640673942(1).jpg)
+
+```
+* 第二种： 当使用ajax提交时，指定contentType为json形式，那么在方法参数位置使用@RequestBody可以直接接收集合数据而无需使用POJO进行包装。
+	* 配置ajax
+	$.ajax({
+		type: "POST",
+		url: "http://localhost:8089/user/quick14",
+		data: xxx,
+		contentType: "application/json;charset=utf-8"
+	})
+    @RequestMapping("/quick14")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save14(@RequestBody List<User> userList) throws IOException {
+        System.out.println(userList);
+    }
+```
+
+### 5.6 开放静态资源访问
+
+```
+* 因为web.xml中，我们配置了 / 下的匹配都将使用DispathcerServlet处理，我们访问的所有路径都会被拦截，然后到扫描包的Controller中匹配路径。
+如果找不到就会报错。像图片，jsp文件等静态资源都是不用DispathcerServlet处理的，所以需要配置静态资源访问权限。
+
+第一种：
+	<mvc:resources mapping="/js/**" location="/js/"></mvc:resources>
+	mapping表示访问地址， location表示资源实际地址，
+	表示： 通过/js/** 路径访问的，将会去/js/下查找资源，而不是交由DispathcerServlet处理
+
+第二种： 
+	<mvc:default-servlet-handler/>
+	DispathcerServlet匹配不到后，交由tomcat处理匹配资源
+```
+
+![1640675660(1)](./1640675660(1).jpg)
