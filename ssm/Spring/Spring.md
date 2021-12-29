@@ -279,3 +279,160 @@ public class UseServlet extends HttpServlet {
 }	
 ```
 
+## 7.Spring JDBCTemplate
+
+```
+* Spring 对jdbc操作数据库的封装  --- jdbcTemplate
+```
+
+### 7.1JdbcTemplate开发步骤
+
+```
+1. 导入spring-jdbc和spring-tx坐标
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.3.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>5.3.14</version>
+        </dependency>
+
+2. 创建jdbc连接对象
+    @Test
+    public void searchData() throws PropertyVetoException {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setDriverClass("com.mysql.cj.jdbc.Driver");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/world?serverTimezone=UTC");
+        dataSource.setUser("root");
+        dataSource.setPassword("123456");
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate();
+        jdbcTemplate.setDataSource(dataSource);
+
+        int row = jdbcTemplate.update("insert into account values(?,?,?)", null, "老李", 3500);
+        System.out.println(row);
+    }
+        
+3. 操作数据库
+        int row = jdbcTemplate.update("insert into account values(?,?,?)", null, "老李", 3500);
+        System.out.println(row);
+```
+
+### 7.2利用Spring的IOC注入 ★
+
+```
+1. 导入坐标
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>5.3.14</version>
+    </dependency>
+    
+2. 配置jdbc.properties外部配置文件
+    jdbc.driver=com.mysql.cj.jdbc.Driver
+    jdbc.url=jdbc:mysql://localhost:3306/world?serverTimezone=UTC
+    jdbc.user=root
+    jdbc.password=123456
+
+3. applicationContext.xml文件
+    <!--    导入外部配置-->
+    <context:property-placeholder location="classpath:Jdbc.properties"/>
+
+    <!--    配置数据源-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="user" value="${jdbc.user}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+    <!--    配置JdbcTemplate对象-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+ 
+ 4. 使用
+	 @Test
+     public void insertData(){
+        ApplicationContext app = new ClassPathXmlApplicationContext("applicationContext.xml");
+        JdbcTemplate jdbcTemplate = app.getBean(JdbcTemplate.class);
+        int row = jdbcTemplate.update("insert into account values(?, ?, ?)", null, "陈∑", 5000);
+        System.out.println(row);
+    }
+ 
+```
+
+### 7.3测试JdbcTemplate修改操作
+
+- 使用spring-test测试
+
+  ```
+  * 导入坐标： spring-test、 junit (junit的版本必须是4.12以上)
+          <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>4.13.2</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-test</artifactId>
+              <version>5.3.14</version>
+          </dependency>
+  ```
+
+- 增删改都是使用update
+
+  ```
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration("classpath:applicationContext.xml")
+  public class TestJdbcTemplate02 {
+      @Autowired  // 在xml文件中配置了bean，使用注解注入
+      JdbcTemplate jdbcTemplate;
+  
+      @Test  // 修改操作
+      public void testUpdate(){
+          int row = jdbcTemplate.update("update account set wallet=? where name=?", 10000, "老王");
+          System.out.println(row);
+      }
+  
+      @Test // 删除操作
+      public void testDelete(){
+          int row = jdbcTemplate.update("delete from account where name=?", "老李");
+          System.out.println(row);
+      }
+      
+      @Test // 添加操作
+      public void testAdd(){
+          int row = jdbcTemplate.update("insert into account values(?,?,?)", null, "老李", 100);
+          System.out.println(row);
+      }
+  }
+  ```
+
+- 查找操作
+
+  ```
+      @Test  // 查找所有
+      public void testQueryAll(){
+          List<Account> query = jdbcTemplate.query("select * from account", new BeanPropertyRowMapper<Account>(Account.class));
+          System.out.println(query);
+      }
+  
+      @Test  // 条件查找
+      public void testQueryOne(){
+          Account account = jdbcTemplate.queryForObject("select * from account where name=?", new BeanPropertyRowMapper<Account>(Account.class), "老王");
+          System.out.println(account);
+      }
+  
+      @Test  // 聚合查找
+      public void testQueryCount(){
+          Long aLong = jdbcTemplate.queryForObject("select count(*) from account", Long.class);
+          System.out.println(aLong);
+      }
+  ```
+
+  
