@@ -283,3 +283,180 @@
 ```
 
 ![1640675660(1)](./1640675660(1).jpg)
+
+### 5.7 配置全局Filter解决参数乱码
+
+```
+* 在web.xml文件中配置全局Filter
+  <!--  配置过滤器解决乱码问题-->
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+```
+
+### 5.8参数绑定注解 @RequestParam
+
+```
+* vlaue: 请求参数名称
+* required： 是否必须携带该参数，默认true
+* defaultValue： 当没有指定请求参数时，则使用指定的默认值赋值
+    @RequestMapping("/quick15")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save15(@RequestParam(value="name", required = false, defaultValue = "默认值")  String userName) throws IOException {
+        System.out.println(userName);
+    } 
+```
+
+### 5.9自定义转换器
+
+```
+这个一般SpringMVC提供的就够用了，了解即可
+参考地址：
+https://www.cnblogs.com/kitor/p/11093030.html
+```
+
+### 5.10获取Servlet相关API
+
+```
+* SpringMVC支持使用原始ServletAPI对象作为控制器方法的参数进行注入，常用的对象如下
+- HttpServletRequest
+- HttpServletResponse
+- HttpSession
+
+    @RequestMapping("/quick16")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save16(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        System.out.println(request);
+        System.out.println(response);
+        System.out.println(session);
+    }
+
+```
+
+### 5.11 获取请求头信息
+
+```
+* 通过@RequestHeader获取指定请求头信息
+    @RequestMapping("/quick17")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save17(@RequestHeader(value = "User-Agent", required = false) String userAgent) throws IOException {
+        System.out.println(userAgent);
+    }
+
+ * 通过@CookieValue获取cookie
+    @RequestMapping("/quick18")
+    @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+    public void save18(@CookieValue(value = "_ga") Cookie cookie) throws IOException {
+        System.out.println(cookie);
+    }
+```
+
+### 5.12文件上传
+
+```
+* 第一步： 导入坐标
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.3</version>
+        </dependency>
+        
+* 第二步： 配置文件上传解析器   srping-mvc.xml文件中
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >
+        <property name="maxUploadSize" value="50000"></property>
+        <property name="maxUploadSizePerFile" value="50000"></property>
+        <property name="defaultEncoding" value="UTF-8"></property>
+    </bean>
+
+```
+
+- 单文件上传
+
+  ```
+      
+  * 第三步： form表单提交
+  	method： post
+  	enctype="multipart/form-data"
+  	
+      <form action="${pageContext.request.contextPath}/user/quick19" method="post" enctype="multipart/form-data">
+          名字:<input type="text" name="name">
+          上传文件：<input type="file" name="uploadFile">
+          <input type="submit" value="提交">
+      </form>	
+      
+  * 第四步： 配置接口，获取并存储文件
+      @RequestMapping(value = "/quick19", method = RequestMethod.POST)
+      @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+      public void save19(String name, MultipartFile uploadFile) throws IOException {
+          String originalFilename = uploadFile.getOriginalFilename();
+          System.out.println(originalFilename);
+          uploadFile.transferTo(new File("D:\\upload\\"+originalFilename));
+      }
+  ```
+
+- 多文件上传
+
+  ```
+  * 第三步： form表单提交
+  	method： post
+  	enctype="multipart/form-data"
+  	
+      <form action="${pageContext.request.contextPath}/user/quick19" method="post" enctype="multipart/form-data">
+          名字:<input type="text" name="name">
+          上传文件：<input type="file" name="uploadFile1">
+          上传文件：<input type="file" name="uploadFile2">
+          <input type="submit" value="提交">
+      </form>	
+      
+  * 第四步： 配置接口，获取并存储文件
+      @RequestMapping(value = "/quick19", method = RequestMethod.POST)
+      @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+      public void save19(String name, MultipartFile uploadFile1, MultipartFile uploadFile2) throws IOException {
+          String originalFilename1 = uploadFile1.getOriginalFilename();
+          System.out.println(originalFilename1);
+          uploadFile1.transferTo(new File("D:\\upload\\"+originalFilename1));
+          
+          String originalFilename2 = uploadFile2.getOriginalFilename();
+          System.out.println(originalFilename2);
+          uploadFile2.transferTo(new File("D:\\upload\\"+originalFilename2));
+      }
+      
+  -------------------------------------------  数组方式接收  ------------------------------------------------   
+   * 第三步： form表单提交
+  	method： post
+  	enctype="multipart/form-data"
+  	
+      <form action="${pageContext.request.contextPath}/user/quick20" method="post" enctype="multipart/form-data">
+          名字:<input type="text" name="name">
+          上传文件：<input type="file" name="uploadFile">
+          上传文件：<input type="file" name="uploadFile">
+          <input type="submit" value="提交">
+      </form>
+      
+  * 第四步： 配置接口，获取并存储文件
+      @RequestMapping(value = "/quick20", method = RequestMethod.POST)
+      @ResponseBody  // 告知SpringMVC这个是回写字符串，不是回显页面
+      public void save20(String name, MultipartFile[] uploadFile) throws IOException {
+          for (MultipartFile multipartFile : uploadFile) {
+              String originalFilename = multipartFile.getOriginalFilename();
+              multipartFile.transferTo(new File("D:\\upload\\"+originalFilename));
+          }
+      }  
+   
+  ```
+
+  
