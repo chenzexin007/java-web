@@ -140,7 +140,7 @@ eg.
         <property name="userDaoImpl" ref="userDao"></property>
     </bean>
     name=userService： 指UserService类中 setUserService
-    ref： 指用那个Bean注入
+    ref： 指用哪个Bean注入
     注入普通属性： 不用ref，用value
    * 使用 p 命名空间
    xmlns:p="http://www.springframework.org/schema/p"

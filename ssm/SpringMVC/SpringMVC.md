@@ -67,7 +67,7 @@
 ```
 * 用户发送请求到前端控制器DispatcherServlet
 * DispatcherServlet收到请求调用Handler Mapping处理映射器
-* 处理器映射找到巨日的处理器（可以根据xml哦诶之、注解进行查找），生成处理器对象及处理拦截器（如果有则生成）一并返回给DispatcherServlet
+* 处理器映射找到具体的处理器（可以根据xml哦诶之、注解进行查找），生成处理器对象及处理拦截器（如果有则生成）一并返回给DispatcherServlet
 * DispatcherServlet调用HandlerAdapter处理器适配器
 * HandlerAdapter经过适配调用具体的处理器(Controller, 也叫后端控制器)
 * Controller执行完成返回ModelAndView
