@@ -1,4 +1,4 @@
-# 1.Spring
+1.Spring
 
 ## 1.Spring简介
 
@@ -469,13 +469,90 @@ public class UseServlet extends HttpServlet {
 ![1644908058(1)](./1644908058(1).jpg)
 
 ```
-1. 创建切点class （有需要被增强的）
-2. 创建切面class （有用来增强的方法）
-3. applicationContext.xml
+1. 导入坐标
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>  // context中有aop，但是aspectjweaver切面写得更好，所以官网处理后建议使用两者结合使用
+      <version>5.3.15</version>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjweaver</artifactId>
+      <version>1.9.8.RC3</version>
+    </dependency>
+2. 创建切点class （有需要被增强的方法）
+3. 创建切面class （有用来增强的方法）
+4. applicationContext.xml
 	* 添加aop命名空间
 	* 注入切点和切面bean
 	* 织入
 		在切面bean中指定 增强类型、增强使用的方法、那个方法需要被增强
-4. 使用spring-test、junit等写测试类AopTest，测试aop切面
+5. 使用spring-test、junit等写测试类AopTest，测试aop切面
 ```
+
+### 8.3 事务控制
+
+```
+是对aop的一种实现，对指定范围的类和方法进行事务控制（增强）；
+当被事务管理的整个方法执行正常时，才会运行；
+若中间出现错误，直接回滚；
+一般用在业务层，阻止语法错误导致 操作数据库数据错误
+```
+
+
+
+#### 8.3.1xml配置
+
+![1644979518(1)](./1644979518(1).jpg)
+
+```java
+1. pom.xml中导入坐标
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>5.3.15</version>
+    </dependency>
+    
+2. applicationContext.xml中
+  * 添加tx命名空间
+  *	<!--    配置平台事务管理器 和上面的jdbcTemplate有点像-->
+    <bean id="transactionManger" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+  *	<!--    通知： 事务的增强-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManger">
+        事务属性的配置： 方法、超时时间、是否只读等
+        <tx:attributes>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+  *	<!--    织入： 事务的aop织入-->
+    <aop:config>
+    	指定使用 指定事务 管理 指定范围的类的方法
+        （使用 txAdvice事务 管理 cn.itcast.shiwu包下所有类的所有方法）
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.itcast.shiwu.*.*(..))"></aop:advisor>
+    </aop:config>
+    
+3. 编写测试类
+```
+
+#### 8.3.2 注解配置
+
+1. 将所有的bean都改成注解bean，通过扫描包在applicationContext.xml中导入
+
+![b7de8285ef74a1ee8d0bda6a5f4ff27](./b7de8285ef74a1ee8d0bda6a5f4ff27.png)
+
+2. 在需要被事务增强的类或者方法上添加注解： @Transactional
+
+   类注解： 类中所有的方法都将被这个事务控制
+
+   方法注解： 该方法将使用这个事务控制
+
+   ![1644981585(1)](./1644981585(1).jpg)
+
+3. 在applicationContext.xml中配置事务的注解驱动
+
+   ![1644981721(1)](./1644981721(1).jpg)
 
