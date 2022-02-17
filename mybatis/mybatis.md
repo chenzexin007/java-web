@@ -163,3 +163,126 @@
 
 ![1645003394(1)](./1645003394(1).jpg)
 
+### 3.5 typeHandlers类处理器
+
+#### 3.5.1概念
+
+```
+* mybatis会使用内置的typeHandler处理我们 java->数据库、数据库->java 的数据类型转换
+* 但内置的typeHandlers并不能满足我们的需求、场景，所以需要自定义typeHandlers
+```
+
+#### 3.5.2自定义typeHandler
+
+```
+步骤：
+	第一步： 实现org.apache.ibatis.type.TypeHandler接口 或 继承org.apache.ibatis.type.BaseTypeHandler
+	第二步： 实现 或 重写 里面的四个方法， 一个是 java->数据库  三个是 数据库->java
+	第三步： 在mybatis的核心配置文件sqlMapConfig.xml中配置typeHandlers
+	第四步： 写测试类测试
+```
+
+![1645086874(1)](./1645086874(1).jpg)
+
+## 4.代理对象实现dao
+
+### 4.1与传统对比
+
+`代理对象`与`传统实现`的区别在于： 不再需要给dao的接口写**实现类**，mybatis会自动根据mapper命名空间把**mapper的sql**和**接口的方法**做映射。
+
+### 4.2 代理实现的注意点
+
+```
+1. Mapper.xml文件中的namespace与mapper接口的全限命名相同
+2. Mapper接口方法名和Mapper。xml中定义的每一个statement的id相同
+3. Mapper接口方法的输入参数类型和Mapper。xml中定义的每个sql的parameterType的类型相同
+4. Mapper接口方法的输出类型和Mapper。xml中定义的每个sql的resultType的类型相同
+5. 写测试类
+	与之前不用的是： 拿到sqlSession后，我们不再使用命名空间的方式调用sql，而是获取对应的mapper，然后再调用sql
+	AccountInter mapper = sqlSession.getMapper(AccountInter.class);
+	Account account = mapper.findById(2);
+```
+
+![d0389ba76eef7004181f6717128c4e1](./d0389ba76eef7004181f6717128c4e1.png)
+
+### 4.3例子
+
+![1645068055(1)](./1645068055(1).jpg)
+
+## 5.动态sql
+
+### 5.1场景
+
+```
+* 有些sql语句是不固定的，会根据搜索条件而改变。
+* 例如条件搜索，有可能根据name或者name、age、id一起关联查找等
+```
+
+### 5.2例子
+
+#### 5.2.1if控制
+
+```
+* 核心代码
+    <select id="findByInfo" resultType="cn.itcast.domain.Account" parameterType="cn.itcast.domain.Account">
+        select * from account
+        <where>
+            <if test="id!=0">
+                and id=#{id}
+            </if>
+            <if test="name!=null">
+                and name=#{name}
+            </if>
+            <if test="wallet">
+                and wallet=#{wallet}
+            </if>
+        </where>
+    </select>
+* 根据if条件动态生成 sql语句
+```
+
+
+
+![1645078355(1)](./1645078355(1).jpg)
+
+#### 5.2.2foreach遍历
+
+```
+* 核心代码
+    <select id="findByIds" parameterType="list" resultType="cn.itcast.domain.Account">
+        select * from account 
+        <where>
+            <foreach collection="list" open="id in (" close=")" separator="," item="id">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+* 根据foreach条件动态拼接生成 sql语句
+```
+
+
+
+![1645079687(1)](./1645079687(1).jpg)
+
+#### 5.2.3sql片段抽取
+
+```
+* 将重复的sql语句抽出，作为公共代码引入，解耦
+* 核心代码
+	* 抽离
+    <sql id="selectAccount">
+        select  * from account
+    </sql>	
+    * 引入
+    <select id="findById" parameterType="int" resultType="cn.itcast.domain.Account">
+        <include refid="selectAccount"></include>
+        where id=#{id}
+    </select>
+```
+
+![1645080403(1)](./1645080403(1).jpg)
+
+
+
+
+
