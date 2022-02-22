@@ -184,6 +184,62 @@
 
 ![1645086874(1)](./1645086874(1).jpg)
 
+### 3.6plugin
+
+```
+* 拓展mybatis的功能
+
+* 步骤
+	- 导入坐标
+	<dependency>
+      <groupId>com.github.pagehelper</groupId>
+      <artifactId>pagehelper</artifactId>
+      <version>3.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jsqlparser</groupId>
+      <artifactId>jsqlparser</artifactId>
+      <version>0.9.1</version>
+    </dependency>
+    
+    - mybatis的核心配置文件sqlMapConfig.xml中配置plugin
+	<!--    分页插件配置-->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+	<!--            指定方言-->
+            <property name="dialect" value="mysql"/>
+        </plugin>
+    </plugins>  
+    
+    - 写接口、 在mapper中映射sql语句
+    public List<Account> findAll();
+    
+    <sql id="selectAccount">
+        select  * from account
+    </sql>
+
+    <select id="findAll" resultType="cn.itcast.domain.Account">
+        <include refid="selectAccount"></include>
+    </select>
+    
+    - 写测试类，使用PageHelper初始化分页、使用PageInfo获取分页信息
+        // 分页功能实现
+        PageHelper.startPage(1, 3);
+
+        List<Account> all = mapper.findAll();
+        for (Account account1 : all) {
+            System.out.println(account1);
+        }
+        // 自动结合上面信息，获取分页信息
+        PageInfo<Account> accountPageInfo = new PageInfo<Account>(all);
+        long total = accountPageInfo.getTotal();
+        int pageSize = accountPageInfo.getPageSize();
+        System.out.println("总页数：" + pageSize);
+        System.out.println("总条数：" + total);    
+```
+
+![1645409703(1)](./1645409703(1).jpg)
+
 ## 4.代理对象实现dao
 
 ### 4.1与传统对比
@@ -282,7 +338,105 @@
 
 ![1645080403(1)](./1645080403(1).jpg)
 
+## 6.多表查询
+
+```
+* 多表查询涉及到表的设计，以及主键外键的关联
+	http://www.manongjc.com/article/15405.html
+
+* mybatis多表查询时，在一个对象中的属性也是一个对象时，要做映射，这个时候我们需要使用到resultMap
+```
 
 
 
+### 6.1一对一
+
+![1645422869(1)](./1645422869(1).jpg)
+
+```
+* 1.建表
+	- 创建 account表
+create table account(
+ id int primary key auto_increment,
+ name varchar(16),
+ birthday varchar(16),
+ wallet varchar(16)
+);	
+	- 创建 orders表
+create table orders(
+ id int primary key auto_increment,  // 主键
+ account_id int unique,
+ date varchar(16),
+ money varchar(16),
+ foreign key(account_id) references account(id) // 设置外键
+ on delete cascade
+ on update cascade
+);	
+
+* 2.建类
+public class Account {
+    private int id;
+    private String name;
+    private int wallet;
+    private Date birthday;
+    ...
+}
+public class Order {
+    private int id;
+    private Date date;
+    private double money;
+    private Account account;
+    ...
+}
+
+* 3.建接口
+public interface AccountInter {
+
+}
+public interface OrderInter {
+    public Order findById();
+}
+
+* 4.建映射mapper.xml
+<mapper namespace="cn.itcast.dao.OrderInter">
+	// ☆resultMap用来映射order.account的信息，也可以说是重新把order的属性和数据表列重新组织对应关系
+    <resultMap id="orderMap" type="cn.itcast.domain.Order">
+        <id column="oid" property="id"></id>
+        <result column="date" property="date"></result>
+        <result column="money" property="money"></result>
+        // <result column="name" property="account.name"></result>
+        // <result column="wallet" property="account.wallet"></result>
+        // <result column="birthday" property="account.birthday"></result>
+        // <result column="aid" property="account.id"></result>
+        // 处理order.account的地方
+         <association property="account" javaType="cn.itcast.domain.Account">
+            <result column="name" property="name"></result>
+            <result column="wallet" property="wallet"></result>
+            <result column="birthday" property="birthday"></result>
+            <result column="aid" property="id"></result>
+        </association>
+    </resultMap>
+
+    <select id="findById" resultMap="orderMap">
+    	// 使用外键简历关联关系，一对一关联查找
+        select *, o.id oid, a.id aid from orders o, account a where o.account_id=a.id;
+    </select>
+</mapper>
+
+* 5.编写测试类
+public class TestOrder {
+    @Test
+    public void test1() throws IOException {
+        // 获取核心配置文件
+        InputStream resourceAsStream = Resources.getResourceAsStream("sqlMapConfig.xml");
+        // 创建工厂对象
+        SqlSessionFactory build = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        // 获取session绘画对象
+        SqlSession sqlSession = build.openSession();
+        OrderInter mapper = sqlSession.getMapper(OrderInter.class);
+        Order order = mapper.findById();
+        System.out.println(order);
+    }
+}
+```
 
