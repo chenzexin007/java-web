@@ -186,7 +186,7 @@
 
 ### 3.6plugin
 
-```
+```java
 * 拓展mybatis的功能
 
 * 步骤
@@ -278,7 +278,7 @@
 
 #### 5.2.1if控制
 
-```
+```xml
 * 核心代码
     <select id="findByInfo" resultType="cn.itcast.domain.Account" parameterType="cn.itcast.domain.Account">
         select * from account
@@ -303,7 +303,7 @@
 
 #### 5.2.2foreach遍历
 
-```
+```xml
 * 核心代码
     <select id="findByIds" parameterType="list" resultType="cn.itcast.domain.Account">
         select * from account 
@@ -322,7 +322,7 @@
 
 #### 5.2.3sql片段抽取
 
-```
+```xml
 * 将重复的sql语句抽出，作为公共代码引入，解耦
 * 核心代码
 	* 抽离
@@ -353,7 +353,7 @@
 
 ![1645422869(1)](./1645422869(1).jpg)
 
-```
+```java
 * 1.建表
 	- 创建 account表
 create table account(
@@ -439,4 +439,128 @@ public class TestOrder {
     }
 }
 ```
+
+### 6.2多对一
+
+```xml
+* 反过来，订单相对用户就是多对一关系；
+
+相对于上面的一对一关系，修改部分在resultmap中使用了collection集合；
+
+    <resultMap id="accountMap" type="cn.itcast.domain.Account">
+        <id column="aid" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="wallet" property="wallet"></result>
+        <result column="birthday" property="birthday"></result>
+        <collection property="orderList" ofType="cn.itcast.domain.Order">
+            <id column="oid" property="id"></id>
+            <result column="date" property="date"></result>
+            <result column="money" property="money"></result>
+        </collection>
+    </resultMap>
+    <select id="findById" resultMap="accountMap">
+        select *,o.id oid, a.id aid from orders o, account a where o.account_id=a.id;
+    </select>
+```
+
+### 6.3 多对多
+
+```
+* sys_user表、sys_role表、sys_user_role形成多对多关系；
+```
+
+![1645583220(1)](./1645583220(1).jpg)
+
+```xml
+* map映射语句
+    <resultMap id="roleResultMap" type="cn.itcast.domain.User">
+        <id column="uid" property="id"></id>
+        <result column="username" property="username"></result>
+        <result column="email" property="email"></result>
+        <result column="password" property="password"></result>
+        <result column="phoneNum" property="phoneNum"></result>
+        <collection property="roleList" ofType="cn.itcast.domain.Role">
+            <id column="rid" property="id"></id>
+            <result column="roleName" property="roleName"></result>
+            <result column="roleDesc" property="roleDesc"></result>
+        </collection>
+    </resultMap>
+
+    <select id="hanNameUserRole" resultMap="roleResultMap">
+        SELECT *, u.id uid, r.id rid FROM sys_user u, sys_role r, sys_user_role ur where u.id=ur.userId and ur.roleId=r.id;
+    </select>
+
+* 测试语句
+    @Test
+    public void test3() throws IOException {
+        // 获取核心配置文件
+        InputStream resourceAsStream = Resources.getResourceAsStream("sqlMapConfig.xml");
+        // 创建工厂对象
+        SqlSessionFactory build = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        // 获取session绘画对象
+        SqlSession sqlSession = build.openSession();
+        UserInter mapper = sqlSession.getMapper(UserInter.class);
+        List<User> users = mapper.hanNameUserRole();
+        System.out.println(users);
+        for (User user : users) {
+            System.out.println(user);
+        }
+    }
+```
+
+![1645585908(1)](./1645585908(1).jpg)
+
+### 6.4注解开发
+
+```
+* 注解开发
+	- 写接口，接口中的方法上使用 @注解语法：
+	@Select 查询
+	@Insert 插入
+	@Update 修改
+	@Delete 删除
+	@Result 结果集封装
+	@Results 封装多个结果接Result
+	@One 实现一对一封装
+	@Many 实现一对多封装
+	
+	- 在mybatis核心配置文件sqlMapConfig.xml中的mappers配置package扫描包
+	eg.
+    <mappers>
+    	// 扫描cn.itcast.mapper包下的所有接口
+        <package name="cn.itcast.mapper"/>
+    </mappers>
+    
+    - 写测试
+```
+
+
+
+![fd5f5cc4218c53e1bf7ae1e32e91adb](./fd5f5cc4218c53e1bf7ae1e32e91adb.png)
+
+#### 6.4.1一对一注解开发
+
+```
+* 第一种
+```
+
+
+
+![1645600337(1)](./1645600337(1).jpg)
+
+```
+* 第二种
+```
+
+
+
+![1645600277(1)](./1645600277(1).jpg)
+
+#### 6.4.2一对多注解开发
+
+![1645600921(1)](./1645600921(1).jpg)
+
+#### 6.4.3多对多注解开发
+
+![1645601806(1)](./1645601806(1).jpg)
 
