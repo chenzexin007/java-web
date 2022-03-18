@@ -15,7 +15,7 @@ http://www.zhanshaoyi.com/15261.html
 
 ## CentOS7
 
-```
+```n
 * CentOS是种免费的Linux系统
 
 * CentOS镜像资源
